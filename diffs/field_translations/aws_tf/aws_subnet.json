@@ -1,0 +1,11 @@
+{
+    "availability_zone": "AvailabilityZone",
+    "availability_zone_id": "AvailabilityZoneId",
+    "cidr_block": "CidrBlock",
+    "ipv6_cidr_block": "Ipv6CidrBlock",
+    "map_public_ip_on_launch": "MapPublicIpOnLaunch",
+    "outpost_arn": "OutpostArn",
+    "assign_ipv6_address_on_creation": "AssignIpv6AddressOnCreation",
+    "vpc_id": "VpcId",
+    "tags": "Tags"
+}

@@ -1,0 +1,10 @@
+{
+    "cidr_block": "CidrBlock",
+    "instance_tenancy": "InstanceTenancy",
+    "enable_dns_support": "EnableDnsSupport",
+    "enable_dns_hostnames": "EnableDnsHostnames",
+    "enable_classiclink": "EnableClassicLink",
+    "enable_classiclink_dns_support": "EnableClassicLinkDnsSupport",
+    "assign_generated_ipv6_cidr_block": "AssignIpv6Block",
+    "tags": "Tags"
+}
