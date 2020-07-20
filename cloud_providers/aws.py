@@ -77,7 +77,6 @@ def supplement_subnet_data(subnet):
     if subnet["Ipv6CidrBlockAssociationSet"] == []:
         subnet["Ipv6CidrBlock"] = ""
     else:
-        print(subnet["Ipv6CidrBlockAssociationSet"])
         subnet["Ipv6CidrBlock"] = subnet["Ipv6CidrBlockAssociationSet"][0]["Ipv6CidrBlock"]
 
     if "OutpostArn" not in subnet.keys():

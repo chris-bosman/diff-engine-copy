@@ -11,3 +11,4 @@ client = MongoClient(f"mongodb://{username}:{password}@{os.getenv('MONGO_URL')}:
 infra_db = client['infrastructure']
 svc_db = client['source-control']
 meta_db = client['meta']
+diff_db = client['diffs']
