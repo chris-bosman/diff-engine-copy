@@ -26,8 +26,7 @@ def main():
     # TODO: Provide iterable list of statefiles to app
     # TODO: Find way to iterate over resource types for infra
     terraform.store_tfstate_s3(os.getenv('AWS_S3_BUCKET'), os.getenv('AWS_S3_PATH'))
-    aws.store_vpcs()
-    aws.store_subnets()
+    aws.store_resources()
     meta.generate_docs(os.getenv('AWS_S3_BUCKET'), os.getenv('AWS_S3_PATH'))
 
     # Generate diffs

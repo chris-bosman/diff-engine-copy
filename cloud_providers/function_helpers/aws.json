@@ -1,0 +1,32 @@
+{
+    "aws_vpc": {
+        "top_level": "Vpcs",
+        "function_name": "describe_vpcs",
+        "id_field": "VpcId",
+        "client": "ec2"
+    },
+    "aws_subnet": {
+        "top_level": "Subnets",
+        "function_name": "describe_subnets",
+        "id_field": "SubnetId",
+        "client": "ec2"
+    },
+    "aws_alb": {
+        "top_level": "LoadBalancers",
+        "function_name": "describe_load_balancers",
+        "id_field": "LoadBalancerArn",
+        "client": "elbv2"
+    },
+    "aws_lb": {
+        "top_level": "LoadBalancers",
+        "function_name": "describe_load_balancers",
+        "id_field": "LoadBalancerArn",
+        "client": "elbv2"
+    },
+    "aws_nlb": {
+        "top_level": "LoadBalancers",
+        "function_name": "describe_load_balancers",
+        "id_field": "LoadBalancerArn",
+        "client": "elbv2"
+    }
+}

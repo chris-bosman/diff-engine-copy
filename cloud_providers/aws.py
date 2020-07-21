@@ -1,55 +1,15 @@
 import boto3
+import json
 import os
 
 from db import mongo
 from pymongo import ReturnDocument
 
-# This will fail without environment variables for authorization. This is intentional.
-ec2 = boto3.client('ec2', region_name=os.getenv('AWS_REGION'))
-
-def store_vpcs():
-    vpcs = ec2.describe_vpcs()['Vpcs']
-    vpc_collection = mongo.infra_db["aws_vpc"]
-
-    for vpc in vpcs:
-        vpc = supplement_vpc_data(vpc)
-
-        vpc_collection.find_one_and_replace(
-            {'VpcId': vpc['VpcId']},
-            vpc,
-            return_document=ReturnDocument.AFTER,
-            upsert=True
-        )
-
-    return {
-        "message": "Successfully uploaded documents",
-        "status": 200
-    }
-
-def store_subnets():
-    subnets = ec2.describe_subnets()['Subnets']
-    subnet_collection = mongo.infra_db["aws_subnet"]
-
-    for subnet in subnets:
-        subnet = supplement_subnet_data(subnet)
-
-        subnet_collection.find_one_and_replace(
-            {'SubnetId': subnet['SubnetId']},
-            subnet,
-            return_document=ReturnDocument.AFTER,
-            upsert=True
-        )
-
-    return {
-        "message": "Success",
-        "status": 200
-    }
-
-def supplement_vpc_data(vpc):
-    classic_link = ec2.describe_vpc_classic_link(VpcIds=[vpc['VpcId']])
-    classic_link_dns = ec2.describe_vpc_classic_link_dns_support(VpcIds=[vpc['VpcId']])
-    dns_support = ec2.describe_vpc_attribute(Attribute='enableDnsSupport', VpcId=vpc['VpcId'])
-    dns_hostnames = ec2.describe_vpc_attribute(Attribute='enableDnsHostnames', VpcId=vpc['VpcId'])
+def supplement_aws_vpc_data(vpc, client):
+    classic_link = client.describe_vpc_classic_link(VpcIds=[vpc['VpcId']])
+    classic_link_dns = client.describe_vpc_classic_link_dns_support(VpcIds=[vpc['VpcId']])
+    dns_support = client.describe_vpc_attribute(Attribute='enableDnsSupport', VpcId=vpc['VpcId'])
+    dns_hostnames = client.describe_vpc_attribute(Attribute='enableDnsHostnames', VpcId=vpc['VpcId'])
     enable_classiclink = classic_link['Vpcs'][0]['ClassicLinkEnabled']
     enable_classiclink_dns_support = classic_link_dns['Vpcs'][0]['ClassicLinkDnsSupported']
     enable_dns_support = dns_support['EnableDnsSupport']['Value']
@@ -73,7 +33,7 @@ def supplement_vpc_data(vpc):
 
     return vpc
 
-def supplement_subnet_data(subnet):
+def supplement_aws_subnet_data(subnet, client):
     if subnet["Ipv6CidrBlockAssociationSet"] == []:
         subnet["Ipv6CidrBlock"] = ""
     else:
@@ -83,3 +43,67 @@ def supplement_subnet_data(subnet):
         subnet["OutpostArn"] = ""
     
     return subnet
+
+def supplement_aws_lb_data(lb, client):
+    attributes = client.describe_load_balancer_attributes(LoadBalancerArn=lb['LoadBalancerArn'])['Attributes']
+
+    lb['DropInvalidHeaderFields'] = [ attr['Value'] for attr in attributes if 'routing.http.drop_invalid_header_fields.enabled' in attr.values() and attr['Key'] == 'routing.http.drop_invalid_header_fields.enabled' ]
+    lb['IdleTimeout'] = [ attr['Value'] for attr in attributes if 'idle_timeout_seconds' in attr.values() and attr['Key'] == "idle_timeout.timeout_seconds" ]
+    lb['EnableDeletionProtection'] = [ attr['Value'] for attr in attributes if "deletion_protection.enabled"  in attr.values() and attr['Key'] == "deletion_protection.enabled" ]
+    lb['EnableCrossZoneLoadBalancing'] = [ attr['Value'] for attr in attributes if "load_balancing.cross_zone.enabled" in attr.values() and attr['Key'] == "load_balancing.cross_zone.enabled" ]
+    lb['EnableHttp2'] = [ attr['Value'] for attr in attributes if "routing.http2.enabled" in attr.values() and attr['Key'] == "routing.http2.enabled" ]
+    lb['AccessLogs'] = {
+        "Bucket": [ attr['Value'] for attr in attributes if "access_logs.s3.bucket" in attr.values() and attr['Key'] == "access_logs.s3.bucket" ],
+        "Enabled": [ attr['Value'] for attr in attributes if "access_logs.s3.enabled" in attr.values() and attr['Key'] == "access_logs.s3.enabled" ],
+        "Prefix": [ attr['Value'] for attr in attributes if "access_logs.s3.prefix"in attr.values() and attr['Key'] == "access_logs.s3.prefix" ]
+    }
+    lb['Subnets'] = [ az_attr['SubnetId'] for az_attr in lb['AvailabilityZones'] ]
+    lb['SubnetMapping'] = [ az_attr['LoadBalancerAddresses'] for az_attr in lb['AvailabilityZones'] ]
+
+    for attr in lb:
+        if attr == None or attr == []:
+            attr = ""
+        if len(attr) == 1:
+            attr = attr[0]
+
+    return lb
+
+def supplement_aws_alb_data(lb, client):
+    if lb['Type'] == "application":
+        lb = supplement_aws_lb_data(lb, client)
+        return lb
+    else:
+        return None
+
+def supplement_aws_nlb_data(lb, client):
+    if lb['Type'] == "network":
+        lb = supplement_aws_lb_data(lb, client)
+        return lb
+    else:
+        return None
+
+def store_resources():
+    with open("cloud_providers/function_helpers/aws.json", "r") as f:
+        helper_file = json.load(f)
+
+    resource_list = list(helper_file.keys())
+    for resource_type in resource_list:
+        client = boto3.client(helper_file[resource_type]['client'], region_name=os.getenv('AWS_REGION'))
+        resources = getattr(client, helper_file[resource_type]["function_name"])()[helper_file[resource_type]['top_level']]
+        collection = mongo.infra_db[resource_type]
+
+        for resource in resources:
+            resource = globals()[f"supplement_{resource_type}_data"](resource, client)
+
+            if resource:
+                collection.find_one_and_replace(
+                    {helper_file[resource_type]['id_field']: resource[helper_file[resource_type]['id_field']]},
+                    resource,
+                    return_document=ReturnDocument.AFTER,
+                    upsert=True
+                )
+
+    return {
+        "message": "Success",
+        "status": 200
+    }

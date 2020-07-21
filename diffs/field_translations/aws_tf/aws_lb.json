@@ -1,0 +1,16 @@
+{
+    "name": "LoadBalancerName",
+    "internal": "Scheme",
+    "load_balancer_type": "Type",
+    "security_groups": "SecurityGroups",
+    "drop_invalid_header_fields": "DropInvalidHeaderFields",
+    "access_logs": "AccessLogs",
+    "subnets": "Subnets",
+    "subnet_mapping": "SubnetMapping",
+    "idle_timeout": "IdleTimeout",
+    "enable_deletion_protection": "EnableDeletionProtection",
+    "enable_cross_zone_load_balancing": "EnableCrossZoneLoadBalancing",
+    "enable_http2": "EnableHttp2",
+    "ip_address_type": "IpAddressType",
+    "tags": "Tags"
+}
