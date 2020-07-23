@@ -3,14 +3,20 @@
     "internal": "Scheme",
     "load_balancer_type": "Type",
     "security_groups": "SecurityGroups",
-    "drop_invalid_header_fields": "DropInvalidHeaderFields",
-    "access_logs": "AccessLogs",
+    "access_logs": {
+        "parent": "AccessLogs",
+        "bucket": "Bucket",
+        "enabled": "Enabled",
+        "prefix": "Prefix"
+    },
     "subnets": "Subnets",
-    "subnet_mapping": "SubnetMapping",
-    "idle_timeout": "IdleTimeout",
+    "subnet_mapping": {
+        "parent": "SubnetMapping",
+        "allocation_ids": "AllocationId",
+        "subnet_id": "SubnetId"
+    },
     "enable_deletion_protection": "EnableDeletionProtection",
     "enable_cross_zone_load_balancing": "EnableCrossZoneLoadBalancing",
-    "enable_http2": "EnableHttp2",
     "ip_address_type": "IpAddressType",
     "tags": "Tags"
 }

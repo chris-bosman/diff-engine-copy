@@ -28,5 +28,19 @@
         "function_name": "describe_load_balancers",
         "id_field": "LoadBalancerArn",
         "client": "elbv2"
+    },
+    "aws_alb_listener": {
+        "top_level": "Listeners",
+        "function_name": "describe_listeners",
+        "id_field": "ListenerArn",
+        "client": "elbv2",
+        "filter": {
+            "iterable": true,
+            "field": "LoadBalancerArn",
+            "function": "describe_load_balancers",
+            "top_level": "LoadBalancers",
+            "id_field": "LoadBalancerArn",
+            "client": "elbv2"
+        }
     }
 }

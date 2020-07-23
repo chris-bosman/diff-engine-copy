@@ -1,0 +1,16 @@
+{
+    "load_balancer_arn": "LoadBalancerArn",
+    "port": "Port",
+    "protocol": "Protocol",
+    "ssl_policy": "SslPolicy",
+    "certificate_arn": "supplement",
+    "default_action": {
+        "parent": "DefaultActions",
+        "order": "Order",
+        "type": "Type",
+        "target_group_arn": "TargetGroupArn",
+        "forward": "ForwardConfig",
+        "redirect": "RedirectConfig",
+        "fixed_response": "FixedResponseConfig"
+    }
+}

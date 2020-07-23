@@ -44,17 +44,18 @@ def generate_output():
             resource_type = re.search(re.compile("[^-]*"), coll)[0]
             svc_pointer = coll.replace(resource_type, "")[1:len(coll)-2]
 
-            print(f"""\n
-            ##############################
-            Source Control: {svc_pointer}
-            Resource Type: {resource_type}
-            ##############################
-            \n""")
-
             diff_docs = db.mongo.diff_db[coll].find()
 
             for doc in diff_docs:
-                print(json.dumps(doc['diffs'], sort_keys=True, indent=12, default=json_util.default) + "\n")
+                if len(doc['diffs']) > 0:
+                    print(f"""\n
+                    ##############################
+                    Source Control: {svc_pointer}
+                    Resource Type: {resource_type}
+                    ##############################
+                    \n""")
+
+                    print(json.dumps(doc, sort_keys=True, indent=12, default=json_util.default) + "\n")
 
     else:
         print("No drift detected.")

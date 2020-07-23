@@ -22,50 +22,10 @@ def document_tf_resources(bucket, key):
                     to_diff.append(resource['aws_id'])
 
         meta_collection = mongo.meta_db[f"{collection}-{bucket}/{key}"]
-
-        check_existing = meta_collection.find_one({
-            "diff_ids": to_diff
-        })
-
-        if check_existing == None:
-            meta_collection.find_one_and_replace(
-                {"diff_ids": "$exists"},
-                {"diff_ids": to_diff},
-                return_document=ReturnDocument.AFTER,
-                upsert=True
-            )
-        
-def document_tf_vpcs(bucket, key):
-    state_collection = mongo.svc_db[f"{bucket}/{key}"]
-    infra_vpc_collection = mongo.infra_db["aws_vpcs"]
-    
-    tf_cursor = state_collection.find({
-        "terraform_type": "aws_vpc"
-    })
-
-    infra_cursor = infra_vpc_collection.find({})
-
-    tf_vpcs = [ vpc for vpc in tf_cursor ]
-    infra_vpcs = [ vpc for vpc in infra_cursor ]
-
-    vpcs_to_diff = []
-    for tfvpc in tf_vpcs:
-        for awsvpc in infra_vpcs:
-            if tfvpc['aws_id'] == awsvpc['VpcId'] and tfvpc['aws_id'] not in vpcs_to_diff:
-                vpcs_to_diff.append(awsvpc['VpcId'])
-
-    collection = mongo.meta_db[f"aws_vpcs-{bucket}/{key}"]
-
-    check_existing = collection.find_one({
-        "diff_vpc_ids": vpcs_to_diff
-    })
-
-    if check_existing != None:
-        collection.find_one_and_replace(
-            { "diff_vpc_ids": "$exists" },
-            {
-                "diff_vpc_ids": vpcs_to_diff
-            },
+        meta_collection.delete_many({})
+        meta_collection.find_one_and_replace(
+            {"diff_ids": "$exists"},
+            {"diff_ids": to_diff},
             return_document=ReturnDocument.AFTER,
             upsert=True
         )
