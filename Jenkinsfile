@@ -5,6 +5,7 @@ def GET_TIME() {
 }
 
 pipeline{
+    agent any
     environment {
         TIMESTAMP = GET_TIME()
     }
